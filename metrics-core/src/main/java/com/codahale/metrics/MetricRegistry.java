@@ -112,7 +112,19 @@ public class MetricRegistry implements MetricSet {
      * @return a new or pre-existing {@link Counter}
      */
     public Counter counter(String name) {
-        return getOrAdd(name, MetricBuilder.COUNTERS);
+        return getOrAdd(name, MetricSuppliers.COUNTERS, Counter.class);
+    }
+
+    /**
+     * Return the {@link Counter} registered under this name; or create and register 
+     * a new {@link Counter} if none is registered.
+     *
+     * @param name the name of the metric
+     * @param metricSupplier supplier function of a Counter metric instance
+     * @return a new or pre-existing {@link Counter}
+     */
+    public Counter counter(String name, MetricSupplier<Counter> metricSupplier) {
+        return getOrAdd(name, metricSupplier, Counter.class);
     }
 
     /**
@@ -123,7 +135,19 @@ public class MetricRegistry implements MetricSet {
      * @return a new or pre-existing {@link Histogram}
      */
     public Histogram histogram(String name) {
-        return getOrAdd(name, MetricBuilder.HISTOGRAMS);
+        return getOrAdd(name, MetricSuppliers.HISTOGRAMS, Histogram.class);
+    }
+
+    /**
+     * Return the {@link Histogram} registered under this name; or create and register 
+     * a new {@link Histogram} if none is registered.
+     *
+     * @param name the name of the metric
+     * @param metricSupplier supplier function of a Histogram metric instance
+     * @return a new or pre-existing {@link Histogram}
+     */
+    public Histogram histogram(String name, MetricSupplier<Histogram> metricSupplier) {
+        return getOrAdd(name, metricSupplier, Histogram.class);
     }
 
     /**
@@ -134,7 +158,19 @@ public class MetricRegistry implements MetricSet {
      * @return a new or pre-existing {@link Meter}
      */
     public Meter meter(String name) {
-        return getOrAdd(name, MetricBuilder.METERS);
+        return getOrAdd(name, MetricSuppliers.METERS, Meter.class);
+    }
+
+    /**
+     * Return the {@link Meter} registered under this name; or create and register 
+     * a new {@link Meter} if none is registered.
+     *
+     * @param name the name of the metric
+     * @param metricSupplier supplier function of a Meter metric instance
+     * @return a new or pre-existing {@link Meter}
+     */
+    public Meter meter(String name, MetricSupplier<Meter> metricSupplier) {
+        return getOrAdd(name, metricSupplier, Meter.class);
     }
 
     /**
@@ -145,7 +181,19 @@ public class MetricRegistry implements MetricSet {
      * @return a new or pre-existing {@link Timer}
      */
     public Timer timer(String name) {
-        return getOrAdd(name, MetricBuilder.TIMERS);
+        return getOrAdd(name, MetricSuppliers.TIMERS, Timer.class);
+    }
+
+    /**
+     * Return the {@link Timer} registered under this name; or create and register 
+     * a new {@link Timer} if none is registered.
+     *
+     * @param name the name of the metric
+     * @param metricSupplier supplier function of a Timer metric instance
+     * @return a new or pre-existing {@link Timer}
+     */
+    public Timer timer(String name, MetricSupplier<Timer> metricSupplier) {
+        return getOrAdd(name, metricSupplier, Timer.class);
     }
 
     /**
@@ -308,16 +356,16 @@ public class MetricRegistry implements MetricSet {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Metric> T getOrAdd(String name, MetricBuilder<T> builder) {
+    private <T extends Metric> T getOrAdd(String name, MetricSupplier<T> supplier, Class<T> type) {
         final Metric metric = metrics.get(name);
-        if (builder.isInstance(metric)) {
+        if (type.isInstance(metric)) {
             return (T) metric;
         } else if (metric == null) {
             try {
-                return register(name, builder.newMetric());
+                return register(name, supplier.createMetric());
             } catch (IllegalArgumentException e) {
                 final Metric added = metrics.get(name);
-                if (builder.isInstance(added)) {
+                if (type.isInstance(added)) {
                     return (T) added;
                 }
             }
@@ -399,57 +447,36 @@ public class MetricRegistry implements MetricSet {
     /**
      * A quick and easy way of capturing the notion of default metrics.
      */
-    private interface MetricBuilder<T extends Metric> {
-        MetricBuilder<Counter> COUNTERS = new MetricBuilder<Counter>() {
+    private interface MetricSuppliers<T extends Metric> {
+
+    	MetricSupplier<Counter> COUNTERS = new MetricSupplier<Counter>() {
             @Override
-            public Counter newMetric() {
+            public Counter createMetric() {
                 return new Counter();
             }
-
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Counter.class.isInstance(metric);
-            }
         };
 
-        MetricBuilder<Histogram> HISTOGRAMS = new MetricBuilder<Histogram>() {
+        MetricSupplier<Histogram> HISTOGRAMS = new MetricSupplier<Histogram>() {
             @Override
-            public Histogram newMetric() {
+            public Histogram createMetric() {
                 return new Histogram(new ExponentiallyDecayingReservoir());
             }
-
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Histogram.class.isInstance(metric);
-            }
         };
 
-        MetricBuilder<Meter> METERS = new MetricBuilder<Meter>() {
+        MetricSupplier<Meter> METERS = new MetricSupplier<Meter>() {
             @Override
-            public Meter newMetric() {
+            public Meter createMetric() {
                 return new Meter();
             }
-
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Meter.class.isInstance(metric);
-            }
         };
 
-        MetricBuilder<Timer> TIMERS = new MetricBuilder<Timer>() {
+        MetricSupplier<Timer> TIMERS = new MetricSupplier<Timer>() {
             @Override
-            public Timer newMetric() {
+            public Timer createMetric() {
                 return new Timer();
             }
 
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Timer.class.isInstance(metric);
-            }
         };
 
-        T newMetric();
-
-        boolean isInstance(Metric metric);
     }
 }
