@@ -1,9 +1,5 @@
 package com.codahale.metrics.graphite;
 
-import com.codahale.metrics.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -11,6 +7,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.codahale.metrics.*;
 
 /**
  * A reporter which publishes metric values to a Graphite server.
@@ -173,7 +174,7 @@ public class GraphiteReporter extends ScheduledReporter {
                 try {
                     reportGauge(entry.getKey(), entry.getValue(), timestamp);
                 } catch (Exception e) {
-                    LOGGER.warn("Unable to report to Graphite", graphite, e);
+					LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey() + ", exception : " + e.getMessage(), graphite);
                 }
             }
 
@@ -181,7 +182,7 @@ public class GraphiteReporter extends ScheduledReporter {
                 try {
                     reportCounter(entry.getKey(), entry.getValue(), timestamp);
                 } catch (Exception e) {
-                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey(), graphite, e);
+                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey() + ", exception : " + e.getMessage(), graphite);
                 }
             }
 
@@ -189,7 +190,7 @@ public class GraphiteReporter extends ScheduledReporter {
                 try {
                     reportHistogram(entry.getKey(), entry.getValue(), timestamp);
                 } catch (Exception e) {
-                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey(), graphite, e);
+                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey() + ", exception : " + e.getMessage(), graphite);
                 }
             }
 
@@ -197,7 +198,7 @@ public class GraphiteReporter extends ScheduledReporter {
                 try {
                     reportMetered(entry.getKey(), entry.getValue(), timestamp);
                 } catch (Exception e) {
-                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey(), graphite, e);
+                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey() + ", exception : " + e.getMessage(), graphite);
                 }
             }
 
@@ -205,7 +206,7 @@ public class GraphiteReporter extends ScheduledReporter {
                 try {
                     reportTimer(entry.getKey(), entry.getValue(), timestamp);
                 } catch (Exception e) {
-                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey(), graphite, e);
+                    LOGGER.warn("Unable to report to Graphite. key : " + entry.getKey() + ", exception : " + e.getMessage(), graphite);
                 }
             }
 
